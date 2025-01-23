@@ -257,8 +257,8 @@ def eval_vxc_matrix(mol, dm, vc):
 
 
 # definition of molecule (Using HF molecule as example) #
-atom="""H	+0.45    0.0    0.0	
-        F	-0.45    0.0    0.0"""
+atom="""H    +0.45    0.0    0.0	
+        F    -0.45    0.0    0.0"""
 basis = "aug-cc-pVQZ"
 mol = gto.M(atom=atom, basis=basis, verbose=0)
 mr = scf.RKS(mol)
