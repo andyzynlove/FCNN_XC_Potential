@@ -60,7 +60,6 @@ class ExtendModel(nn.Module):
         x = self.model.forward(x)
         return x
 
-# definition of vxc #
 def _eval_vc_from_nn(model, rho, cuda):
     inputs = torch.from_numpy(rho)
     inputs = inputs.cuda()
@@ -189,7 +188,7 @@ class Grids(object):
             p += na3
         self.extended_coords = extended_coords
 
-def eval_xc_on_grids(mol, dm, grids, c, mo_occ):
+def eval_vc_on_grids(mol, dm, grids, c, mo_occ):
     coords = grids.coords
     extended_coords = grids.extended_coords
     na = 7
@@ -228,7 +227,7 @@ def eval_xc_on_grids(mol, dm, grids, c, mo_occ):
 
 def eval_vc_matrix(mol, dm, grids, c, mo_occ):
     weights = grids.weights
-    wc = eval_xc_on_grids(mol, dm, grids, c, mo_occ)
+    wc = eval_vc_on_grids(mol, dm, grids, c, mo_occ)
     total_size = len(grids.original_coords)
     n_blk = total_size // BLK_SIZE
     res = total_size - BLK_SIZE * n_blk
