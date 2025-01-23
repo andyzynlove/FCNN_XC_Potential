@@ -1,6 +1,6 @@
 Parameters of FCNN-based XC potential and example codes to call them (.py).
 
-PySCF Pytorch and tqdm packages are required to run the example codes.
+PySCF, Pytorch, tqdm and Optimized Einsum packages are required to run the example codes.
 
 Compile the sh.f90 file to get the spherical function.
 
