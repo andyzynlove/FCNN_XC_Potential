@@ -7,6 +7,7 @@ class LoadModel(nn.Module):
     def __init__(self):
         super(LoadModel, self).__init__()
         self.model = DNN()
+        self.load_model()
 
     def load_model(self):
         self.model = nn.DataParallel(self.model)
