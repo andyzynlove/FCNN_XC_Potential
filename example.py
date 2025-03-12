@@ -37,5 +37,3 @@ model.cuda()
 # get the exchange-corrlation potential matrix #
 vc, vc_real_space = get_vc(model, mol, dm_ao, grids, c, mo_occ)
 vxc = get_vxc(mol, dm_ao, vc)
-
-print(vc_real_space)
