@@ -82,4 +82,6 @@ def get_vc(load_model, mol, dm, grids, c, mo_occ):
         aow = einsum('pi,p->pi', ao, wv)
         vc_matrix += dft.numint._dot_ao_ao(mol, ao, aow, np.ones((n_grids, mol.nbas), dtype=np.int8), shls_slice, ao_loc)   
     vc_matrix = vc_matrix + vc_matrix.T
+    vc_matrix = -vc_matrix
+    wc = -wc
     return vc_matrix, wc
