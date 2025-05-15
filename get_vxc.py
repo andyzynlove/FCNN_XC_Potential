@@ -1,6 +1,10 @@
-from pyscf import dft
+from pyscf import scf
 
 def get_vxc(mol, dm, vc):
-    nelec, exc_guide, vxc_guide = dft.numint.nr_vxc(mol, dft.gen_grid.Grids(mol), 'b3lypg', dm)
-    vxc = vxc_guide + vc
+    mr = scf.RKS(mol)
+    mr.xc = 'b3lypg'
+    v0 = mr.get_veff(mol, dm)
+    veff = v0 + vc
+    J = scf.hf.get_jk(mol, dm)[0]
+    vxc = veff - J
     return vxc
