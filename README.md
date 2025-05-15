@@ -8,4 +8,4 @@ f2py -c --f90flags='-fopenmp' -lgomp -llapack sh.f90 -m sh_fort
 
 mc.npy is the Maxwell-Cartesian spherical harmonic (MCSH) stencils.
 
-example.py indicates how to get the FCNN-based exchange-correlation potential through our FCNN model. (In this case, we use hydrogen fluoride molecule as an example, and CCSD method as initial density.)
+example.py indicates how to run KS-DFT/FCNN procedure via our FCNN model. (In this case, we use hydrogen fluoride molecule as an example, and B3LYP electron density as initial guess.)
