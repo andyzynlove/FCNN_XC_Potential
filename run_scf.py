@@ -4,47 +4,40 @@ from get_vc import *
 import numpy as np
 
 class DIIS:
-    def __init__(self, S, diis_space):
-
-        eig, Z = np.linalg.eigh(S)
-        S12 = 1./np.sqrt(eig)
-        self.S = S
-        self.O = reduce(np.dot, (Z, np.diag(S12), Z.T))
+    def __init__(self, overlap_matrix, diis_space):
+        eigenvalues, eigenvectors = np.linalg.eigh(overlap_matrix)
+        sqrt_inv_eigenvalues = 1. / np.sqrt(eigenvalues)
+        self.overlap_matrix = overlap_matrix
+        self.ortho_matrix = reduce(np.dot, (eigenvectors, np.diag(sqrt_inv_eigenvalues), eigenvectors.T))
         self.diis_space = diis_space
-        self.norb = len(S[0])
-        self.ems = np.zeros((self.diis_space, self.norb, self.norb))
-        self.pms = np.zeros((self.diis_space, self.norb, self.norb))
-        self.tall = self.t_1 = self.t_2 = self.t_3 = 0.
+        self.n_orb = len(overlap_matrix[0])
+        self.error_matrices = np.zeros((self.diis_space, self.n_orb, self.n_orb))
+        self.fock_matrices = np.zeros((self.diis_space, self.n_orb, self.n_orb))
 
     def extrapolate(self, iteration, fock, dm):
-
         if iteration <= 1 or self.diis_space < 2:
             return fock, 0.0
-
         for k in range(1, min(iteration, self.diis_space))[::-1]:
-            self.ems[k] = self.ems[k-1]
-            self.pms[k] = self.pms[k-1]
+            self.error_matrices[k] = self.error_matrices[k-1]
+            self.fock_matrices[k] = self.fock_matrices[k-1]
+        error_matrix = reduce(np.dot, (fock, dm, self.overlap_matrix))
+        error_matrix -= error_matrix.T
+        self.error_matrices[0] = reduce(np.dot, (self.ortho_matrix.T, error_matrix, self.ortho_matrix))
+        self.fock_matrices[0] = fock.copy()
+        max_index = np.abs(self.error_matrices[0]).argmax()
+        diis_error = np.abs(np.ravel(self.error_matrices[0])[max_index])
+        n_prev = min(iteration, self.diis_space) - 1
+        b_matrix = -1. * np.ones((n_prev+1, n_prev+1))
+        b_matrix[n_prev, n_prev] = 0.
+        b_matrix[:n_prev, :n_prev] = np.einsum('aij,bji->ab', self.error_matrices[:n_prev, :, :], self.error_matrices[:n_prev, :, :], optimize='greedy')
+        a_vector = np.zeros(n_prev+1)
+        a_vector[n_prev] = -1.
+        c_vector = np.linalg.solve(b_matrix, a_vector)
+        new_fock = np.zeros_like(fock)
+        for i, coeff in enumerate(c_vector[:-1]):
+            new_fock += coeff * self.fock_matrices[i]
 
-        em = reduce(np.dot, (fock, dm, self.S))
-        em -= em.T
-        self.ems[0] = reduce(np.dot, (self.O.T, em, self.O))
-        self.pms[0] = fock[:]
-        idx = np.abs(self.ems[0]).argmax()
-        diis_err = np.abs(np.ravel(self.ems[0])[idx])
-
-        nb = min(iteration, self.diis_space)-1
-        B = -1.*np.ones((nb+1, nb+1))
-        B[nb, nb] = 0.
-        B[:nb, :nb] = np.einsum('aij,bji->ab', self.ems[:nb, :, :], self.ems[:nb, :, :],optimize='greedy')
-        A = np.zeros(nb+1)
-        A[nb] = -1.
-        C = np.linalg.solve(B, A)
-
-        newfock = np.zeros_like(fock)
-        for i, c in enumerate(C[:-1]):
-            newfock += c*self.pms[i]
-
-        return newfock, diis_err
+        return new_fock, diis_error
     
 def scf_run(model, mol, dm_init, grids, c_init, mo_occ_init, scf_max_iter):
     S = mol.intor('int1e_ovlp_sph')
