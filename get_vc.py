@@ -31,8 +31,6 @@ def eval_vc_on_grids(model, mol, dm, grids, c, mo_occ):
     assert(total_size * na3 == len(extended_coords))
     n_blk = total_size // BLK_SIZE
     res = total_size - BLK_SIZE * n_blk
-    print('Evaluate xc potential on grids. Block size: %d Total: %d Number of blocks: %d Residual: %d' % 
-            (BLK_SIZE, total_size, n_blk, res))
     wc = np.empty(total_size)
     with tqdm(total=total_size) as pbar:
         for i in range(n_blk):
